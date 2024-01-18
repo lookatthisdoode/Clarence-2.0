@@ -83,7 +83,7 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on("error", (error) => {
+process.on("error", (error) => {
   console.log(error)
 })
 
