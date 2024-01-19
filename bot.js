@@ -1,28 +1,25 @@
 require("dotenv").config()
 const fs = require("node:fs")
 const path = require("node:path")
-
-const {
-  Collection,
-  REST,
-  Routes,
-  Client,
-  GatewayIntentBits,
-} = require("discord.js")
-
 const { Player } = require("discord-player")
-const { error } = require("node:console")
+const { Collection, Client, GatewayIntentBits } = require("discord.js")
+const { log } = require("node:console")
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, "GuildVoiceStates"],
+  intents: [
+    GatewayIntentBits.Guilds,
+    "GuildVoiceStates",
+    "GuildMessages",
+    "MessageContent",
+  ],
 })
 
 client.commands = new Collection()
 
+// fill up commands list
 const foldersPath = path.join(__dirname, "commands")
 const commandFolders = fs.readdirSync(foldersPath)
 
-// fill up commands list
 for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder)
   const commandFiles = fs
@@ -71,13 +68,18 @@ client.on("interactionCreate", async (interaction) => {
   }
 })
 
-const player = new Player(client)
-
-loadExtractors = async () => {
-  // await player.extractors.loadDefault((ext) => ext !== "YouTubeExtractor")
-  await player.extractors.loadDefault()
-}
-loadExtractors()
+//player initialisation
+client.player = new Player(client, {
+  leaveOnEmpty: false,
+  skipFFmpeg: false,
+  deafenOnJoin: true,
+  lagMonitor: 1000,
+  ytdlOptions: {
+    filter: "audioonly",
+    quality: "highestaudio",
+    highWaterMark: 1 << 25,
+  },
+})
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
@@ -91,21 +93,22 @@ process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error)
 })
 
-player.events.on("playerStart", (queue, track) => {
+client.player.events.on("playerStart", (queue, track) => {
   // we will later define queue.metadata object while creating the queue
-  queue.metadata.channel.send(`Started playing **${track.title}**!`)
-})
-
-player.events.on("error", (queue, error) => {
-  // Emitted when the player queue encounters error
-  console.log(`General player error event: ${error.message}`)
-  console.log(error)
-})
-
-player.events.on("playerError", (queue, error) => {
-  // Emitted when the audio player errors while streaming audio track
-  console.log(`Player error event: ${error.message}`)
-  console.log(error)
+  // queue.metadata.channel.send(`Started playing **${track.title}**!`)
+  queue.metadata.channel.send({
+    embeds: [
+      {
+        description: `Erhm, guys, allow me to play this **${track.title}** by ${track.author}`,
+        // description: `**${track.title}** by ${track.author}`,
+        Image: {
+          url: track.thumbnail,
+        },
+        color: 0xffffff,
+        //   timestamp: new Date(),
+      },
+    ],
+  })
 })
 
 client.login(process.env.BOT_TOKEN)
