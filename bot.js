@@ -91,7 +91,7 @@ client.player = new Player(client, {
 })
 
 client.on('ready', () => {
-  console.log(player.scanDeps())
+  console.log(client.player.scanDeps())
   console.log(`Logged in as ${client.user.tag}`)
 })
 
