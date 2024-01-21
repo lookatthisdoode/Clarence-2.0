@@ -1,35 +1,44 @@
-require("dotenv").config()
-const fs = require("node:fs")
-const path = require("node:path")
-const { Player } = require("discord-player")
-const { Collection, Client, GatewayIntentBits } = require("discord.js")
-const { log } = require("node:console")
+require('dotenv').config()
+const fs = require('node:fs')
+const path = require('node:path')
+const { Player } = require('discord-player')
+const { Collection, Client, GatewayIntentBits } = require('discord.js')
+const { log } = require('node:console')
+
+const express = require('express')
+const app = express()
+
+app.get('/', (req, res) => {
+  res.send('What you want here?')
+})
+
+//make changes from /musicbot given params to play from browser
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    "GuildVoiceStates",
-    "GuildMessages",
-    "MessageContent",
+    'GuildVoiceStates',
+    'GuildMessages',
+    'MessageContent',
   ],
 })
 
 client.commands = new Collection()
 
 // fill up commands list
-const foldersPath = path.join(__dirname, "commands")
+const foldersPath = path.join(__dirname, 'commands')
 const commandFolders = fs.readdirSync(foldersPath)
 
 for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder)
   const commandFiles = fs
     .readdirSync(commandsPath)
-    .filter((file) => file.endsWith(".js"))
+    .filter((file) => file.endsWith('.js'))
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file)
     const command = require(filePath)
     // Set a new item in the Collection with the key as the command name and the value as the exported module
-    if ("data" in command && "execute" in command) {
+    if ('data' in command && 'execute' in command) {
       client.commands.set(command.data.name, command)
     } else {
       console.log(
@@ -40,7 +49,7 @@ for (const folder of commandFolders) {
 }
 
 // slash commands handler
-client.on("interactionCreate", async (interaction) => {
+client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return
 
   const command = interaction.client.commands.get(interaction.commandName)
@@ -56,12 +65,12 @@ client.on("interactionCreate", async (interaction) => {
     console.error(error)
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
-        content: "There was an error while executing this command!",
+        content: 'There was an error while executing this command!',
         ephemeral: true,
       })
     } else {
       await interaction.reply({
-        content: "There was an error while executing this command!",
+        content: 'There was an error while executing this command!',
         ephemeral: true,
       })
     }
@@ -75,25 +84,25 @@ client.player = new Player(client, {
   deafenOnJoin: true,
   lagMonitor: 1000,
   ytdlOptions: {
-    filter: "audioonly",
-    quality: "highestaudio",
+    filter: 'audioonly',
+    quality: 'highestaudio',
     highWaterMark: 1 << 25,
   },
 })
 
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`)
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`)
 })
 
-process.on("error", (error) => {
+process.on('error', (error) => {
   console.log(error)
 })
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error)
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
 })
 
-client.player.events.on("playerStart", (queue, track) => {
+client.player.events.on('playerStart', (queue, track) => {
   // we will later define queue.metadata object while creating the queue
   // queue.metadata.channel.send(`Started playing **${track.title}**!`)
   queue.metadata.channel.send({
@@ -113,3 +122,7 @@ client.player.events.on("playerStart", (queue, track) => {
 
 client.login(process.env.BOT_TOKEN)
 
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`Clarence 2.0 running on port ${PORT}`)
+})
