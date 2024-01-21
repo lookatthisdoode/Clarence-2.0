@@ -10,12 +10,11 @@ COPY package*.json ./
 # Update package list and install ffmpeg
 RUN apt update && apt install -y ffmpeg
 
-# Install dependencies
-RUN npm install
-
 # Clean cache
 RUN npm cache clean --force
 
+# Install dependencies
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
