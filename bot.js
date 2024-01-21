@@ -91,6 +91,7 @@ client.player = new Player(client, {
 })
 
 client.on('ready', () => {
+  console.log(player.scanDeps())
   console.log(`Logged in as ${client.user.tag}`)
 })
 
@@ -113,6 +114,7 @@ client.player.events.on('playerStart', (queue, track) => {
 })
 
 const PORT = process.env.PORT || 3000
+
 app.listen(PORT, () => {
   console.log(`Clarence 2.0 running on port ${PORT}`)
 })
