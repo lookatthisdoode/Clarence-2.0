@@ -12,6 +12,8 @@ module.exports = {
     const channel = interaction.member.voice.channel
     await player.extractors.loadDefault()
 
+    console.log(player.scanDeps())
+
     if (!channel)
       return interaction.reply('You are not connected to a voice channel!') // make sure we have a voice channel
     const query = interaction.options.getString('query', true) // we need input/query to play
