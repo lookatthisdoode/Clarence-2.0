@@ -90,18 +90,8 @@ client.player = new Player(client, {
   },
 })
 
-console.log(client.player.scanDeps())
-
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}`)
-})
-
-process.on('error', (error) => {
-  console.log(error)
-})
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error)
 })
 
 client.player.events.on('playerStart', (queue, track) => {
@@ -122,9 +112,17 @@ client.player.events.on('playerStart', (queue, track) => {
   })
 })
 
-client.login(process.env.BOT_TOKEN)
-
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Clarence 2.0 running on port ${PORT}`)
+})
+
+client.login(process.env.BOT_TOKEN)
+
+client.player.on('error', (error) => {
+  console.log(error)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
 })
