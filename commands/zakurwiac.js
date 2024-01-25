@@ -109,7 +109,7 @@ module.exports = {
 
       // Create brand new queue IF old one gets saved
 
-      if (savedQueue.length < 0) {
+      if (savedQueue.length > 0) {
         newQueue = player.nodes.create(interaction.guild, {
           metadata: {
             channel: interaction.channel,
