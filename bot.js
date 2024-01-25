@@ -6,12 +6,15 @@ const { Collection, Client, GatewayIntentBits } = require('discord.js')
 const { log } = require('node:console')
 
 const express = require('express')
+const gTTS = require('gtts')
+const { getVoiceConnection } = require('@discordjs/voice')
+
 const app = express()
 
-app.get('/', (req, res) => {
-  res.send('What you want here?')
+app.get('/', function (req, res) {
+  const gtts = new gTTS('йахаай блять', 'ru')
+  gtts.stream().pipe(res)
 })
-
 //make changes from /musicbot given params to play from browser
 
 const client = new Client({
@@ -84,7 +87,7 @@ client.player = new Player(client, {
 })
 
 client.on('ready', () => {
-  console.log(client.player.scanDeps())
+  // console.log(client.player.scanDeps())
   console.log(`Logged in as ${client.user.tag}`)
 })
 

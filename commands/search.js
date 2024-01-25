@@ -1,6 +1,8 @@
 const { QueryType } = require('discord-player')
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js')
 const { useQueue } = require('discord-player')
+const discordTTS = require('discord-tts')
+const { createAudioResource } = require('@discordjs/voice')
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -92,7 +94,7 @@ module.exports = {
           )
         }
 
-        await queue.addTrack(selectedTrack)
+        queue.addTrack(selectedTrack)
 
         !queue.isPlaying() ? await queue.node.play() : null
 
