@@ -24,7 +24,7 @@ module.exports = {
       isNaN(query) ||
       query >= tracks.length - 1
     ) {
-      console.log('bad input')
+      console.log('bad input or no input')
       await interaction.followUp(`Bad or no input! Skipping to next song..`)
       queue.node.skip()
     } else {
