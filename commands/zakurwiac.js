@@ -1,14 +1,9 @@
 const {
-  AudioPlayer,
   createAudioResource,
   StreamType,
-  entersState,
-  VoiceConnectionStatus,
   joinVoiceChannel,
   createAudioPlayer,
   AudioPlayerStatus,
-  VoiceConnection,
-  getVoiceConnection,
 } = require('@discordjs/voice')
 
 const { SlashCommandBuilder } = require('discord.js')
@@ -38,14 +33,14 @@ module.exports = {
       const translated = await translate({
         free_api: true,
         text: query,
-        target_lang: 'PL',
+        target_lang: 'CS',
         auth_key: auth_key,
       })
 
       const textToSay = translated.data.translations[0].text
 
       // Create soundbit using
-      const gtts = new gTTS(textToSay, 'pl')
+      const gtts = new gTTS(textToSay, 'cs')
       const audioResource = createAudioResource(gtts.stream(), {
         inputType: StreamType.Arbitrary,
         inlineVolume: true,
@@ -54,81 +49,51 @@ module.exports = {
       // Save current queue logic
       let currentTrack = {}
       let savedQueue = []
-      const queue = useQueue(interaction.guild.id) || null
+
+      const player = interaction.client.player
+
+      // Check for a queue or define new one if called without any songs
+      const queue = useQueue(interaction.guild.id)
 
       if (queue && queue.isPlaying()) {
-        // Get current track first cuz latter function does not have it
+        // Get current track first cuz latter function queue.tracks does not have it
         currentTrack = queue.currentTrack
         savedQueue = [currentTrack, ...queue.tracks.toArray()]
 
-        // Getting rid of the current queue and killing existing connection
-        queue.delete()
-      }
+        // This just skips current song (kills current song)
+        queue.node.playRaw(audioResource)
 
-      // Connecting again
-      // This could be avoided but I can`t get access to a VoiceConnection
-      // to unsubscribe and subscribe old player instance
-      // I just can`t fucking access it :X
+        // Rest of the queue except first song stays in
 
-      const voiceConnection = joinVoiceChannel({
-        channelId: interaction.member.voice.channelId,
-        guildId: interaction.guildId,
-        adapterCreator: interaction.guild.voiceAdapterCreator,
-      })
-
-      // Create OG player to play created voice cue
-      const audioPlayer = createAudioPlayer()
-      const subscription = voiceConnection.subscribe(audioPlayer)
-      audioPlayer.play(audioResource)
-
-      // Wait for the audio to finish playing
-      await new Promise((resolve) => {
-        const listener = (oldState, newState) => {
-          if (newState.status === AudioPlayerStatus.Idle) {
-            resolve()
-            audioPlayer.off('stateChange', listener)
-          }
-        }
-        audioPlayer.on('stateChange', listener)
-      })
-
-      // Destroy OG player connection
-      voiceConnection.destroy()
-      audioPlayer.stop()
-
-      // Then try to create new queue
-
-      // Reference player
-      const player = interaction.client.player
-      await player.extractors.loadDefault()
-
-      // THIS IS CRUCIAL PART OF THE CODE
-      // EVEN THO I NEVER USE RESULTS OF THE SEARCH
-      // IT BREAKS EVERYTHING
-      await player.search('THIS IS CRUCIAL')
-
-      // Create brand new queue IF old one gets saved
-
-      if (savedQueue.length > 0) {
-        newQueue = player.nodes.create(interaction.guild, {
-          metadata: {
-            channel: interaction.channel,
-          },
+        // Just put back same song in a 0 index in a queue
+        queue.insertTrack(currentTrack, 0)
+      } else {
+        // If there is no queue
+        // Establish new voice connection
+        const voiceConnection = joinVoiceChannel({
+          channelId: interaction.member.voice.channelId,
+          guildId: interaction.guildId,
+          adapterCreator: interaction.guild.voiceAdapterCreator,
         })
-        // Connection again
-        try {
-          if (!newQueue.connection)
-            await newQueue.connect(interaction.member.voice.channel)
-        } catch (e) {
-          console.log(e)
-          await newQueue.delete()
-          return interaction.channel.send(
-            'Something wrong. Maybe you are not in a voice channel?'
-          )
-        }
-        // Add saved tracks and play
-        newQueue.addTrack(savedQueue)
-        newQueue.node.play()
+
+        // Create OG player to play created voice cue
+        const audioPlayer = createAudioPlayer()
+        const subscription = voiceConnection.subscribe(audioPlayer)
+        audioPlayer.play(audioResource)
+
+        // // Wait for the audio to finish playing
+        await new Promise((resolve) => {
+          const listener = (oldState, newState) => {
+            if (newState.status === AudioPlayerStatus.Idle) {
+              resolve()
+              audioPlayer.off('stateChange', listener)
+            }
+          }
+          audioPlayer.on('stateChange', listener)
+        })
+
+        // Destroy OG player connection
+        voiceConnection.destroy()
       }
 
       await interaction.followUp('przemówił')
