@@ -9,7 +9,6 @@ module.exports = {
     await interaction.deferReply()
     const queue = useQueue(interaction.guild.id)
     queue ? queue.delete() : null
-    // player.destroy()
 
     await interaction.followUp(`Those brutal words hurt my skin!`)
   },
